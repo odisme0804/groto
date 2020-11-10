@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/transport"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 
@@ -16,7 +17,7 @@ import (
 func NewHTTPServer(e endpoint.Endpoints, logger log.Logger) http.Handler {
 	r := mux.NewRouter()
 	options := []kithttp.ServerOption{
-		kithttp.ServerErrorLogger(logger),
+		kithttp.ServerErrorHandler(transport.NewLogErrorHandler(logger)),
 		kithttp.ServerErrorEncoder(errorEncoder),
 	}
 
@@ -32,7 +33,7 @@ func NewHTTPServer(e endpoint.Endpoints, logger log.Logger) http.Handler {
 
 func decodeSayHelloRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
 	var req pkg.HelloRequest
-	if e := json.NewDecoder(r.Body).Decode(&req); e != nil {
+	if e := json.NewDecoder(r.Body).Decode(&req); e != nil { // fix me when nil body cause panic
 		return nil, e
 	}
 
